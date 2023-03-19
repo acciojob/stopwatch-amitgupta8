@@ -1,86 +1,54 @@
-//your code here
-const startButton = document.getElementById('start');
-const pauseButton = document.getElementById('pause');
-const stopButton = document.getElementById('stop');
-const timeDisplay = document.getElementById('time');
-
-let startTime = 0;
+let timerInterval;
+let startTime;
 let elapsedTime = 0;
-let timerInterval = null;
+
+const timerElement = document.getElementById("timer");
+const startButton = document.getElementById("start");
+const pauseButton = document.getElementById("pause");
+const stopButton = document.getElementById("stop");
 
 function startTimer() {
-  // Disable start button and enable pause and stop buttons
+  startTime = Date.now() - elapsedTime;
+  timerInterval = setInterval(updateTimer, 10);
   startButton.disabled = true;
   pauseButton.disabled = false;
   stopButton.disabled = false;
+}
 
-  // Get current time in milliseconds
-  startTime = Date.now() - elapsedTime;
-
-  // Start timer
-  timerInterval = setInterval(() => {
-    const currentTime = Date.now();
-    elapsedTime = currentTime - startTime;
-    updateTimeDisplay();
-  }, 10);
+function updateTimer() {
+  const elapsedTimeInSeconds = Math.floor((Date.now() - startTime) / 1000);
+  const hours = Math.floor(elapsedTimeInSeconds / 3600).toString().padStart(2, "0");
+  const minutes = Math.floor((elapsedTimeInSeconds % 3600) / 60).toString().padStart(2, "0");
+  const seconds = (elapsedTimeInSeconds % 60).toString().padStart(2, "0");
+  timerElement.textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 function pauseTimer() {
-  // Change pause button text to "continue"
-  pauseButton.textContent = 'continue';
-
-  // Pause timer
   clearInterval(timerInterval);
+  elapsedTime = Date.now() - startTime;
+  pauseButton.textContent = "Continue";
+  pauseButton.removeEventListener("click", pauseTimer);
+  pauseButton.addEventListener("click", continueTimer);
 }
 
 function continueTimer() {
-  // Change pause button text back to "pause"
-  pauseButton.textContent = 'pause';
-
-  // Resume timer
   startTime = Date.now() - elapsedTime;
-  timerInterval = setInterval(() => {
-    const currentTime = Date.now();
-    elapsedTime = currentTime - startTime;
-    updateTimeDisplay();
-  }, 10);
+  timerInterval = setInterval(updateTimer, 10);
+  pauseButton.textContent = "Pause";
+  pauseButton.removeEventListener("click", continueTimer);
+  pauseButton.addEventListener("click", pauseTimer);
 }
 
 function stopTimer() {
-  // Reset elapsed time and disable pause and stop buttons
+  clearInterval(timerInterval);
   elapsedTime = 0;
+  timerElement.textContent = "00:00:00";
+  startButton.disabled = false;
   pauseButton.disabled = true;
   stopButton.disabled = true;
-
-  // Stop timer and update time display
-  clearInterval(timerInterval);
-  updateTimeDisplay();
-
-  // Enable start button
-  startButton.disabled = false;
+  pauseButton.textContent = "Pause";
 }
 
-function updateTimeDisplay() {
-  // Convert elapsed time to hours, minutes, and seconds
-  const hours = Math.floor(elapsedTime / 3600000).toString().padStart(2, '0');
-  const minutes = Math.floor((elapsedTime % 3600000) / 60000).toString().padStart(2, '0');
-  const seconds = Math.floor((elapsedTime % 60000) / 1000).toString().padStart(2, '0');
-
-  // Update time display
-  timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
-}
-
-// Initialize time display
-updateTimeDisplay();
-
-// Add event listeners to buttons
-startButton.addEventListener('click', startTimer);
-pauseButton.addEventListener('click', () => {
-  if (pauseButton.textContent === 'pause') {
-    pauseTimer();
-  } else {
-    continueTimer();
-  }
-});
-stopButton.addEventListener('click', stopTimer);
-
+startButton.addEventListener("click", startTimer);
+pauseButton.addEventListener("click", pauseTimer);
+stopButton.addEventListener("click", stopTimer);
